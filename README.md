@@ -45,7 +45,6 @@ Một biến giả mô phỏng sự kiện COVID-19 được đưa vào để ki
 ### Hướng phát triển:
 - Sử dụng thư viện `ruptures` để xác định điểm gãy chính xác hơn.
 - Kết hợp thêm nhiều biến vĩ mô khác.
-- So sánh với các mô hình hiện đại như: Facebook Prophet, LSTM, Transformer...
 
 ---
 

@@ -1,56 +1,56 @@
-# ICU Forecast using Kalman Filter
 
-## 📝 Giới thiệu  
-Dự án này nhằm dự đoán số lượng giường ICU còn trống tại bệnh viện bằng cách áp dụng các mô hình Kalman Filter. Dữ liệu được sử dụng đến từ Kaggle Playground Series - Season 5 Episode 4. Mục tiêu là phân tích chuỗi thời gian, triển khai và đánh giá hiệu suất của nhiều biến thể Kalman Filter.
+## Giới thiệu
 
-## 📁 Cấu trúc thư mục  
-kalman_icu_forecast/  
-├── data/              # Chứa file train.csv, test.csv  
-├── notebooks/         # Notebook hoặc script chính để phân tích  
-├── src/               # Các mô-đun, hàm, class hỗ trợ  
-├── requirements.txt   # Danh sách các thư viện cần thiết  
-└── README.md          # Tài liệu mô tả project  
+Dự án này phân tích ảnh hưởng của một **sự thay đổi cấu trúc (structural break)** trong chuỗi thời gian đến mô hình ARIMA, thông qua trường hợp tỷ lệ thất nghiệp hàng tháng tại Hoa Kỳ từ năm 1978 đến 2023.  
+Một biến giả mô phỏng sự kiện COVID-19 được đưa vào để kiểm tra xem mô hình mở rộng ARIMAX có phản ánh tốt hơn sự thay đổi cấu trúc này so với ARIMA truyền thống không.
 
-## 🔧 Thiết lập môi trường  
-Yêu cầu Python >= 3.7. Cài đặt các thư viện cần thiết bằng:  
-pip install -r requirements.txt  
+---
 
-## 🚀 Cách chạy project  
-1. Clone repository:  
-git clone https://github.com/username/kalman_icu_forecast.git  
-cd kalman_icu_forecast  
 
-2. (Tuỳ chọn) Tải dữ liệu từ Kaggle và đặt vào thư mục data/  
+## Các bước chính
 
-3. Mở và chạy notebook phân tích:  
-jupyter notebook notebooks/icu_kalman_analysis.ipynb  
+### 1. Xử lý dữ liệu
+- Nguồn: Kaggle - Unemployment Rates by Demographics & Race (1978–2023)
+- Làm sạch, chuẩn hóa thời gian, xử lý giá trị thiếu (nội suy tuyến tính).
+- Tạo biến `policy_change = 1` từ 03/2020 để mô phỏng ảnh hưởng chính sách sau COVID-19.
 
-## 🔄 Quy trình xử lý  
-- Đọc và tiền xử lý dữ liệu (chuyển đổi ngày, xử lý thiếu, tạo đặc trưng)  
-- Tách dữ liệu theo yêu cầu bài toán (chỉ giữ ngày Thứ Năm hoặc dùng toàn bộ)  
-- Chia tập huấn luyện và kiểm tra  
-- Khởi tạo và huấn luyện các mô hình Kalman  
-- Dự đoán và đánh giá kết quả (RMSE, MAE)  
-- Trực quan hóa kết quả: dữ liệu gốc, trạng thái lọc, và dự đoán  
+### 2. Kiểm định và mô hình hóa
+- Sử dụng kiểm định ADF → chuỗi không dừng → lấy sai phân bậc 1.
+- Xây dựng:
+  - **ARIMA(1,1,1)** trên chuỗi sai phân.
+  - **ARIMAX(1,1,1)** với biến `policy_change` làm ngoại sinh.
+- So sánh dự báo và các chỉ số AIC, BIC, Log-Likelihood giữa hai mô hình.
 
-## 📊 Công cụ và thư viện  
-- Python  
-- pandas  
-- numpy  
-- matplotlib  
-- scikit-learn  
-- statsmodels  
-- pykalman (tùy chọn)  
+### 3. Kết quả
 
-## 📈 Kết quả mong đợi  
-- Mô hình Kalman lọc và dự đoán dữ liệu ICU theo thời gian  
-- Đánh giá chính xác bằng RMSE, MAE  
-- So sánh hiệu suất giữa các biến thể mô hình  
+| Chỉ số          | ARIMA       | ARIMAX         |
+|-----------------|-------------|----------------|
+| Log Likelihood  | 585.729     | **593.422**    |
+| AIC             | -1165.419   | **-1178.824**  |
+| BIC             | -1152.577   | **-1161.723**  |
+| HQIC            | -1160.394   | **-1172.145**  |
+| σ² (Phương sai) | 0.0641      | **0.0452**     |
 
-## 📎 Tham khảo  
-- Kaggle Playground S5E4  
-- Tài liệu Kalman Filter: https://en.wikipedia.org/wiki/Kalman_filter  
-- Thư viện pykalman: https://github.com/pykalman/pykalman  
+→ ARIMAX cho kết quả tốt hơn rõ rệt khi xét đến sự thay đổi cấu trúc.
 
-## 📬 Liên hệ  
-Mọi thắc mắc hoặc đóng góp xin gửi về email: yourname@example.com hoặc mở issue trên GitHub repo.
+---
+
+## Thảo luận & Định hướng mở rộng
+
+### Hạn chế:
+- Chưa áp dụng kỹ thuật phát hiện điểm gãy tự động (ruptures, Chow test,...).
+- Chỉ dùng một biến giả duy nhất → chưa phản ánh đầy đủ các yếu tố kinh tế khác (GDP, CPI,...).
+- Mô hình tuyến tính có thể không mô phỏng tốt các phi tuyến phức tạp trong dữ liệu.
+
+### Hướng phát triển:
+- Sử dụng thư viện `ruptures` để xác định điểm gãy chính xác hơn.
+- Kết hợp thêm nhiều biến vĩ mô khác.
+- So sánh với các mô hình hiện đại như: Facebook Prophet, LSTM, Transformer...
+
+---
+
+##  Hướng dẫn sử dụng
+```bash
+
+git clone https://github.com/devIT-tech/TH5-proj.git
+cd TH5-proj
